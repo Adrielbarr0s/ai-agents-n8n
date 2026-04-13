@@ -1,0 +1,291 @@
+{
+  "name": "Sistema-Autonomo-Reposicao-IA",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "96f4ebdc-d8f5-49d2-b753-7e6842bdab69",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  { json: { id: 101, nome: \"Monitor VA 24\", atual: 2, minimo: 5, fornecedor: \"TechDist\" } },\n  { json: { id: 102, nome: \"RAM DDR5 16GB\", atual: 15, minimo: 10, fornecedor: \"GamerSup\" } },\n  { json: { id: 103, nome: \"Placa B650E-F\", atual: 1, minimo: 3, fornecedor: \"TechDist\" } }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "406949b6-14b5-4972-9559-df133feb11cf",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6461e1d7-5d36-498c-939d-01b43eb237d8",
+              "leftValue": "={{ $json.atual }}",
+              "rightValue": "={{ $json.minimo }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "7ee97f55-aad4-48b9-baa3-1077e395b237",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Gere um assunto e um corpo de e-mail de cotação para o produto {{ $json.nome }} do fornecedor {{ $json.fornecedor }}. O estoque está em {{ $json.atual }} unidades."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "5105b7f0-f937-4cfe-8621-33cfee49b64a",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cyLfi5HjQnfUPavb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "log_reposicao",
+          "mode": "list",
+          "cachedResultName": "log_reposicao"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email_gerado": "={{ $json.content.parts[0].text }}",
+            "produto": "={{ $('Code in JavaScript').item.json.nome }}",
+            "fornecedor": "={{ $('Code in JavaScript').item.json.fornecedor }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "produto",
+              "displayName": "produto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fornecedor",
+              "displayName": "fornecedor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email_gerado",
+              "displayName": "email_gerado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "data_registro",
+              "displayName": "data_registro",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "f7dc323f-b542-489c-8859-74b0df31c0dc",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "1YlR3dJSXUnJomQk",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "adrielbarr0s.dev@gmail.com",
+        "subject": "={{ $json.produto }}",
+        "emailType": "text",
+        "message": "={{ $json.email_gerado }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "4dc4d5b6-064e-4583-953c-9094ddf244d8",
+      "name": "Send a message",
+      "webhookId": "d5dec770-0328-4a40-9ccd-b60317236c1c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "14v0CYD69djesAVo",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "dcb3c1a4-12d8-4df3-b550-2b2c81aa9f4a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1dd30638a48d411a62b5850cecfef15b30c819bb0c2d637407e17bee2a4ead51"
+  },
+  "id": "q1Gl4nRyoaJaI6SK",
+  "tags": []
+}
