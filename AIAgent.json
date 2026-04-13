@@ -1,0 +1,165 @@
+{
+  "name": "AIAgent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Olá, como posso ajudar?",
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "51a800cb-f730-463a-a829-52f8371a009c",
+      "name": "When chat message received",
+      "webhookId": "220dcdcf-4cc8-458c-88c6-0a5c0de8e456"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Você é um agente pesquisador.\nSe (e somente se) o usuário fornecer uma URL, use a ferramenta HTTP Request com essa URL.\nCaso contrário, responda apenas com texto, sem usar ferramentas.\nSempre finalize a resposta em português em texto simples.\nApós usar qualquer ferramenta, gere imediatamente a resposta final ao usuário.\nNão continue o raciocínio após responder."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        288,
+        0
+      ],
+      "id": "552b2923-9ebe-42e3-807a-3254b0d8d737",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        176,
+        224
+      ],
+      "id": "85ec1992-fca5-4082-ac65-735fcb455e0d",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cyLfi5HjQnfUPavb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        224
+      ],
+      "id": "6d0a3c47-b04d-4a2f-9c3b-e96bc2f2e4ed",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "url": "={{ $fromAI('URL', '', 'string') || 'https://example.com' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        544,
+        224
+      ],
+      "id": "e43f7a0a-c6ae-4b13-a84c-3dc35e9c675b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        688,
+        0
+      ],
+      "id": "7b479a73-9606-4711-9fcc-5fd933692f6f",
+      "name": "Respond to Chat"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2aad3bbc-001f-4ff0-911d-d0554bca1aa7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1dd30638a48d411a62b5850cecfef15b30c819bb0c2d637407e17bee2a4ead51"
+  },
+  "id": "NDfjErZygTHFyZDd",
+  "tags": []
+}

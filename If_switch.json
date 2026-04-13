@@ -1,0 +1,466 @@
+{
+  "name": "If_switch",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Date Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Name",
+              "placeholder": "Type your Name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Amount",
+              "fieldType": "number",
+              "placeholder": "Type the Amount",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Category",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Eletronics"
+                  },
+                  {
+                    "option": "Clothers"
+                  },
+                  {
+                    "option": "Food"
+                  },
+                  {
+                    "option": "Others"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        -208
+      ],
+      "id": "017e4ee6-2606-4fbd-9fb4-262367327bc4",
+      "name": "On form submission",
+      "webhookId": "62633879-9187-45d7-8b2f-1f9fe7e21e5b"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6ad0b4ef-fbd8-4ad6-81f1-30abc9f0be71",
+              "leftValue": "={{ $json.Amount }}",
+              "rightValue": 300,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        -208
+      ],
+      "id": "17149d76-d39c-4646-ba88-772eea7323b1",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        -496
+      ],
+      "id": "69f0abfd-7ad5-42e0-b04f-c85ea5ff03d0",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/aproval_{{ $now }}.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -496
+      ],
+      "id": "9568de33-348c-4e6a-8da0-ca9f5d9b5673",
+      "name": "Read/Write Files from Disk"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('On form submission').item.json.Category }}",
+                    "rightValue": "Eletronics",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "735c8da4-3aa8-4de0-95dc-c0c30d7d562e"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d6659d10-2c92-4f52-bd98-444c111b8442",
+                    "leftValue": "={{ $('On form submission').item.json.Category }}",
+                    "rightValue": "Clothers",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "56f253b2-b48d-436e-b406-11a62283c906",
+                    "leftValue": "={{ $('On form submission').item.json.Category }}",
+                    "rightValue": "Food",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1676acd3-2988-4b7a-858d-baa20395d0de",
+                    "leftValue": "={{ $('On form submission').item.json.Category }}",
+                    "rightValue": "Others",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        448,
+        -48
+      ],
+      "id": "339cd2d9-8001-41ef-a109-95b4df95a894",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        -304
+      ],
+      "id": "6ad553d3-dd43-4806-a743-d6bad649115d",
+      "name": "Eletronics"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        -112
+      ],
+      "id": "06a040cc-d4b6-4964-9ce6-3777fd335de4",
+      "name": "Clothers"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        272
+      ],
+      "id": "ac9c5a1f-4c27-420a-97a4-2d9d2224e1fd",
+      "name": "Others"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/Eletronics_{{ $now }}.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -304
+      ],
+      "id": "f6c8e12e-3040-4753-88d5-6bea5f33f8fd",
+      "name": "Eletronics_save"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/Clothers_{{ $now }}.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        896,
+        -112
+      ],
+      "id": "2f5be919-3c8e-42a7-a9d7-f48738cf8a04",
+      "name": "Clothers_save"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/Others_{{ $now }}.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        896,
+        272
+      ],
+      "id": "cca7c7b0-b99f-4a38-9bd1-a40795b43029",
+      "name": "Others_save"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        80
+      ],
+      "id": "792db229-8b7f-4950-b84d-367c019249f6",
+      "name": "Foods"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "=/data/Food_{{ $now }}.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        896,
+        80
+      ],
+      "id": "84ac1a3d-92c5-48d1-9c4a-2ec755cf04bc",
+      "name": "Foods_save"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Eletronics",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clothers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Foods",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Others",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eletronics": {
+      "main": [
+        [
+          {
+            "node": "Eletronics_save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clothers": {
+      "main": [
+        [
+          {
+            "node": "Clothers_save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Others": {
+      "main": [
+        [
+          {
+            "node": "Others_save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Foods": {
+      "main": [
+        [
+          {
+            "node": "Foods_save",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7648a363-d736-45e3-8b9d-9a6430342103",
+  "meta": {
+    "instanceId": "1dd30638a48d411a62b5850cecfef15b30c819bb0c2d637407e17bee2a4ead51"
+  },
+  "id": "yTxMuUUqRBSbFq6s",
+  "tags": []
+}

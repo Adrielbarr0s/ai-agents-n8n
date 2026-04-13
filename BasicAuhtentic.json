@@ -1,0 +1,66 @@
+{
+  "name": "BasicAuhtentic",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "autenticacao",
+        "authentication": "basicAuth",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1ad87fa9-78ef-4bfd-aee2-4ada3dfe4622",
+      "name": "Webhook",
+      "webhookId": "36243d58-4e6d-473e-8787-4d95a1ce159e",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "0LIXVwsW4rVgw2Nv",
+          "name": "Credencial"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      status: \"ok\",\n      message: \"Webhook executado com sucesso\",\n      timestamp: new Date().toISOString()\n    }\n  }\n]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0efbaa09-1f64-47d1-8aa8-39ade06bf6b9",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8d80ad94-680c-4511-b410-857569b47900",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1dd30638a48d411a62b5850cecfef15b30c819bb0c2d637407e17bee2a4ead51"
+  },
+  "id": "np5AGC0Z9LOVjp34",
+  "tags": []
+}

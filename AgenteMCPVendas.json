@@ -1,0 +1,165 @@
+{
+  "name": "AgenteMCPVendas",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Olá seja bem vindo!",
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ed2a1dbc-97be-4f38-9116-c30997e10e97",
+      "name": "When chat message received",
+      "webhookId": "f7c0f36d-cdb0-405f-9bcf-a873a9d6dde5"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Você é um analista de vendas.\nUse as ferramentas disponíveis para responder perguntas sobre desempenho de vendas.\nEscolha sempre a ferramenta mais adequada para responder a pergunta.\nNão invente dados fora do que as ferramentas retornarem.\nSempre utilize uma ferramenta para responder perguntas de vendas."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        288,
+        0
+      ],
+      "id": "10f322ed-1bd2-47e2-a982-6b78207d39cc",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        224
+      ],
+      "id": "969c6a59-d22e-4403-9c31-85a85b52f1ed",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cyLfi5HjQnfUPavb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        224
+      ],
+      "id": "4f42fafd-cb38-40cb-9bcf-dcae3ad5fdd6",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        688,
+        0
+      ],
+      "id": "16e35280-40c7-4ea9-950e-cbad6c13270a",
+      "name": "Respond to Chat"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://localhost:5678/mcp/c8955a91-bb65-4f1e-8454-0ac2d897d58f",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        480,
+        224
+      ],
+      "id": "342c42bb-6634-446c-a02b-ef5134ec410b",
+      "name": "MCP Client"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4456c9b1-68b3-497c-a305-e4ad92d00dee",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1dd30638a48d411a62b5850cecfef15b30c819bb0c2d637407e17bee2a4ead51"
+  },
+  "id": "MeXRkoBgyqr2cnZd",
+  "tags": []
+}

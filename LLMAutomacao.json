@@ -1,0 +1,172 @@
+{
+  "name": "LLMAutomacao",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "ef6bbf7e-14e3-47dc-b676-b24af1cf756a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n    v.nome AS veiculo,\n    e.sigla AS estado,\n    SUM(ven.valor_pago) AS total_vendas\nFROM \n    vendas ven\nJOIN \n    veiculos v ON v.id_veiculos = ven.id_veiculos\nJOIN \n    concessionarias c ON c.id_concessionarias = ven.id_concessionarias\nJOIN \n    cidades ci ON ci.id_cidades = c.id_cidades\nJOIN \n    estados e ON e.id_estados = ci.id_estados\nWHERE \n    e.sigla = 'SP'\nGROUP BY \n    v.nome, e.sigla\nORDER BY \n    total_vendas DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        0
+      ],
+      "id": "8aa4cdfb-11c2-4e2c-b7b8-665a24857cec",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "Vsyxn1LT90knMqq5",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        448,
+        0
+      ],
+      "id": "f0998840-d516-417c-8ff6-e9ab729a0b0f",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analise os seguintes dados de vendas dos últimos 30 dias:\n\n{{ JSON.stringify($json.data,null,2) }}\n\nForneça uma análise clara e objetiva em um texto simples, não use HTML ou Markdown."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "c658ca86-5b67-4cd1-bc99-57ba97f400e1",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cyLfi5HjQnfUPavb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "analise@example.com",
+        "toEmail": "Usuario@example.com",
+        "subject": "Análise de Vendas",
+        "emailFormat": "text",
+        "text": "={{ $json.content.parts[0].text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "ec16a3a1-22be-4db3-b472-76e3b2bcdf45",
+      "name": "Send email",
+      "webhookId": "8f21d0d3-580f-475a-a4d6-394801967b73",
+      "credentials": {
+        "smtp": {
+          "id": "irQnnHrbeKvJ21Bw",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bfb9469d-7224-4f8d-9e6a-29a4f3193f2a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1dd30638a48d411a62b5850cecfef15b30c819bb0c2d637407e17bee2a4ead51"
+  },
+  "id": "GkJ0TguOJNqfFeWX",
+  "tags": []
+}

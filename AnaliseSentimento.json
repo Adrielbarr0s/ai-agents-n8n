@@ -1,0 +1,322 @@
+{
+  "name": "AnaliseSentimento",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Deixe seu Comentário",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nome",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "E-mail",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Deixe sua Avaliação",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        0,
+        80
+      ],
+      "id": "1c5e3d16-b096-44a5-ac69-e889c898168d",
+      "name": "On form submission",
+      "webhookId": "a18c1646-8027-47fd-a40c-2064ff6f1542"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analise o sentimento do texto abaixo.\nClassifique como:\n- Positive\n- Neutral\n- Negative\nResponda SOMENTE com um JSON válido, sem markdown, sem texto adicional. exatamente nesse formato:\n{\n\"sentiment\":\"Positive | Neutral | Negative\",\n\"confidence\": number between 0 e 1\n}\nTexto:\n{{ $json['Deixe sua Avaliação'] }}"
+            }
+          ]
+        },
+        "jsonOutput": "={{ false }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        224,
+        80
+      ],
+      "id": "ef24e0d6-5fcf-4263-9116-54a9820d9c22",
+      "name": "Message a model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cyLfi5HjQnfUPavb",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const parsed = JSON.parse($input.first().json.content.parts[0].text);\nreturn [\n  {\n    JSON: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        80
+      ],
+      "id": "ee81e736-3711-4b85-a1b8-993cc66cd4a6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.JSON.sentiment }}",
+                    "rightValue": "Positive",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "73375350-f30d-47df-be34-e5fa5266a60a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Positive"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "31378213-bfff-4091-a761-b93161ca3753",
+                    "leftValue": "={{ $json.JSON.sentiment }}",
+                    "rightValue": "Negative",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Negative"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "06dccf07-32db-4e4b-af72-c551efc1c738",
+                    "leftValue": "={{ $json.JSON.sentiment }}",
+                    "rightValue": "Neutral",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Neutral"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        800,
+        64
+      ],
+      "id": "33c15f66-f1a5-437e-bc06-48540d41e02e",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "fromEmail": "contato@example",
+        "toEmail": "={{ $('On form submission').item.json['E-mail'] }}",
+        "subject": "Recebemos seu contato",
+        "emailFormat": "text",
+        "text": "=Olá  {{ $('On form submission').item.json.Nome }}\nFicamos muito felizes em saber que sua experiencia foi positiva.\nAgradecemos o feedback.\n\nAtenciosamente\nEquipe de Atendimentro.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        -112
+      ],
+      "id": "147ccf7e-849d-40b4-85eb-0e6c38725134",
+      "name": "Positivo",
+      "webhookId": "6a3f167c-4927-4dcc-9388-675d3d0cbdf1",
+      "credentials": {
+        "smtp": {
+          "id": "irQnnHrbeKvJ21Bw",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "contato@example",
+        "toEmail": "={{ $('On form submission').item.json['E-mail'] }}",
+        "subject": "Recebemos seu contato",
+        "emailFormat": "text",
+        "text": "=Olá  {{ $('On form submission').item.json.Nome }}\nLamentamos muito sua experiência negativa.  Entraremos em contato para resolver o problema.\n\nAgradecemos o feedback.\n\nAtenciosamente\nEquipe de Atendimentro.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        80
+      ],
+      "id": "0b561333-7d5d-4fec-ae7e-58d08310b85b",
+      "name": "Negativo",
+      "webhookId": "6a3f167c-4927-4dcc-9388-675d3d0cbdf1",
+      "credentials": {
+        "smtp": {
+          "id": "irQnnHrbeKvJ21Bw",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "contato@example",
+        "toEmail": "={{ $('On form submission').item.json['E-mail'] }}",
+        "subject": "Recebemos seu contato",
+        "emailFormat": "text",
+        "text": "=Olá  {{ $('On form submission').item.json.Nome }}\nRecebemos seu contato e agradecemos as informações.\nSe necessário, entraremos em contato para mais esclarecimento.\n\nAgradecemos o feedback.\n\nAtenciosamente\nEquipe de Atendimentro.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        272
+      ],
+      "id": "36ba6e3e-46ef-48b4-a8e0-2182e9bbe431",
+      "name": "Neutro",
+      "webhookId": "6a3f167c-4927-4dcc-9388-675d3d0cbdf1",
+      "credentials": {
+        "smtp": {
+          "id": "irQnnHrbeKvJ21Bw",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Positivo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Negativo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Neutro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6305e841-50de-4d10-9748-d5ed2db97308",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1dd30638a48d411a62b5850cecfef15b30c819bb0c2d637407e17bee2a4ead51"
+  },
+  "id": "PA9LFOqoLvMR3uMx",
+  "tags": []
+}
